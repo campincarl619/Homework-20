@@ -1,0 +1,86 @@
+```{r}
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+cityData <- read.csv("C:/Users/Unicorn Candycane/Google Drive/School Work/UCI Bootcamp/Class + Homework Assignments/Josh Neal Homework/Homework 5/Pyber/raw_data/city_data.csv")
+rideData <- read.csv("C:/Users/Unicorn Candycane/Google Drive/School Work/UCI Bootcamp/Class + Homework Assignments/Josh Neal Homework/Homework 5/Pyber/raw_data/ride_data.csv")
+
+cityDF <- data.frame(cityData)
+rideDF <- data.frame(rideData)
+```
+
+```{r}
+#Average Fare Per City
+avgFare <- group_by(rideDF,city) %>%summarize("Average_Fare"=mean(fare))
+
+#Total Number of Rides Per City
+cityRides <- count(rideDF,city)
+
+#Total Number of Drivers Per City
+interDF <- merge(avgFare,cityRides,by="city")
+rideInfo <- merge(interDF,cityDF, by="city")
+
+#Rename Column Headers
+names(rideInfo)[names(rideInfo) == "city"] <- "City"
+names(rideInfo)[names(rideInfo) == "n"] <- "Number_of_Rides"
+names(rideInfo)[names(rideInfo) == "driver_count"] <- "Number_of_Drivers"
+names(rideInfo)[names(rideInfo) == "type"] <- "City_Type"
+
+#clear out my environment so I don't see so many variables
+rm(cityData)
+rm(rideData)
+rm(interDF)
+rm(avgFare)
+rm(cityRides)
+
+head(rideInfo)
+```
+
+```{r}
+#Begin Plotting
+ggplot(data = rideInfo, aes(Number_of_Rides,Average_Fare)) + geom_point(aes(color= City_Type,size = Number_of_Drivers,alpha = .3)) + labs(x = "Total Number of Riders",y = "Average Fare", title = "Pyber Ride Sharing Data") + theme(plot.title = element_text(hjust = 0.5)) + xlim(0,35) + ylim(0,50) + theme_light()
+```
+
+```{r}
+# % of Total Fares by City Type Pie Chart
+inter <- aggregate(Average_Fare ~ City_Type,rideInfo,FUN = sum)
+
+colors = c("gold","lightskyblue","lightcoral")
+slices <- inter$Average_Fare
+lbls <- inter$City_Type
+pct <- round(slices/sum(slices)*100)
+lbls <- paste(lbls, pct) # add percents to labels 
+lbls <- paste(lbls,"%",sep="") # ad % to labels 
+pie(slices,labels = lbls, col=colors,
+  	main="Pie Chart of Countries")
+```
+
+```{r}
+#% Total Rides By City
+inter <- aggregate(Number_of_Rides ~ City_Type,rideInfo,FUN = sum)
+
+slices <- inter$Number_of_Rides
+lbls <- inter$City_Type
+pct <- round(slices/sum(slices)*100)
+lbls <- paste(lbls, pct) # add percents to labels 
+lbls <- paste(lbls,"%",sep="") # ad % to labels 
+pie(slices,labels = lbls, col=colors,
+  	main="Pie Chart of Countries")
+```
+
+
+
+
+```{r}
+#% Total Number of Drivers By City
+inter <- aggregate(Number_of_Drivers ~ City_Type,rideInfo,FUN = sum)
+
+slices <- inter$Number_of_Drivers
+lbls <- inter$City_Type
+pct <- round(slices/sum(slices)*100)
+lbls <- paste(lbls, pct) # add percents to labels 
+lbls <- paste(lbls,"%",sep="") # ad % to labels 
+pie(slices,labels = lbls, col=colors,
+  	main="Pie Chart of Countries")
+```
